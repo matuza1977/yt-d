@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Downloader</h1>
+        <div class="input-group">
+            <input type="url" id="ytUrl" placeholder="Cole o link do YouTube...">
+            <button onclick="getVideo()">Buscar</button>
+        </div>
+        <div id="videoInfo" class="hidden">
+            <img id="thumb" src="" alt="Miniatura">
+            <h2 id="title"></h2>
+            <button onclick="download()">Download</button>
+        </div>
+        <div id="error" class="hidden"></div>
+    </div>
+
+    <script>
+        async function getVideo() {
+            const url = document.getElementById('ytUrl').value;
+            const response = await fetch('/get_url', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url: url})
+            });
+
+            const data = await response.json();
+            
+            if(data.error) {
+                showError(data.error);
+                return;
+            }
+
+            document.getElementById('title').textContent = data.title;
+            document.getElementById('thumb').src = data.thumbnail;
+            document.getElementById('videoInfo').classList.remove('hidden');
+            window.downloadUrl = data.url;
+        }
+
+        function download() {
+            const link = document.createElement('a');
+            link.href = window.downloadUrl;
+            link.download = 'video.mp4';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showError(msg) {
+            document.getElementById('error').textContent = msg;
+            document.getElementById('error').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
